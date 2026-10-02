@@ -1,0 +1,21 @@
+[Unit]
+Description=Start a backend for each request and relay to it
+After=network.target
+
+[Service]
+ExecStart=/usr/local/sbin/ondemand-proxy -config /etc/ondemand-proxy/config.json -listen :8080
+RuntimeDirectory=ondemand-proxy
+# Not removed when the proxy dies: the proxy that starts next stops the
+# sessions left running, and their ExecStop reads the environment file again
+RuntimeDirectoryPreserve=yes
+# on-failure leaves the proxy down after a plain kill, and a caller only finds
+# out when they cannot start a session. systemctl stop still stops it
+Restart=always
+
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target

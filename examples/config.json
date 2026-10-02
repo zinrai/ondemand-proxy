@@ -1,0 +1,13 @@
+{
+  "grace": "2m",
+  "ready_timeout": "30s",
+  "first_port": 20000,
+  "sessions": 8,
+  "kinds": {
+    "bmc": {
+      "unit": "ondemand-bmc",
+      "params": ["ip"],
+      "entry": "vnc.html?path=s/{id}/websockify&autoconnect=1"
+    }
+  }
+}

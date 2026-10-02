@@ -1,0 +1,19 @@
+[Unit]
+Description=BMC Web UI session %i
+
+[Service]
+EnvironmentFile=/run/ondemand-proxy/%i.env
+# Bound to loopback only. The proxy is the one way in, and the session would
+# otherwise hand a logged-in console to anyone who can reach the port
+ExecStart=/usr/bin/docker run --rm --name ondemand-bmc-%i \
+    -p 127.0.0.1:${PORT}:8080 --memory 1g \
+    -e BMC_URL=https://${IP}/ ghcr.io/zinrai/bmc-browser
+# The container runs under dockerd, not in this unit, so stopping the docker
+# client alone would leave it running
+ExecStop=/usr/bin/docker stop -t 10 ondemand-bmc-%i
+# docker run hands back the container's 143 from SIGTERM. Without this every
+# stopped session is left behind as a failed unit
+SuccessExitStatus=143
+# Stopped by the proxy once the browser goes away. This only catches a session
+# kept open and forgotten
+RuntimeMaxSec=4h
