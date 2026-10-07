@@ -1,5 +1,8 @@
 [Unit]
 Description=BMC Web UI session %i
+# Not kept once failed: each session is its own instance, and failed ones would
+# pile up in systemctl --failed
+CollectMode=inactive-or-failed
 
 [Service]
 EnvironmentFile=/run/ondemand-proxy/%i.env
@@ -9,8 +12,9 @@ ExecStart=/usr/bin/docker run --rm --name ondemand-bmc-%i \
     -p 127.0.0.1:${PORT}:8080 --memory 1g \
     -e BMC_URL=https://${IP}/ ghcr.io/zinrai/bmc-browser
 # The container runs under dockerd, not in this unit, so stopping the docker
-# client alone would leave it running
-ExecStop=/usr/bin/docker stop -t 10 ondemand-bmc-%i
+# client alone would leave it running. A failure is not fatal: systemd runs this
+# even after the container ended on its own, when there is nothing to stop
+ExecStop=-/usr/bin/docker stop -t 10 ondemand-bmc-%i
 # docker run hands back the container's 143 from SIGTERM. Without this every
 # stopped session is left behind as a failed unit
 SuccessExitStatus=143
